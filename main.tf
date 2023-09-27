@@ -1,5 +1,5 @@
 provider "aws"{
-    region="eu-north-1"
+    region="eu-east-1"
 }
 variable "vpc-parameter"{
     description = "CIDR range for the VPC"
