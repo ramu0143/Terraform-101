@@ -1,6 +1,17 @@
-provider "aws"{
-    region="us-east-1"
+#to start terraform provider code
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
 }
+# Configure the AWS Provider
+provider "aws" {
+  region = "us-east-1"
+}
+#To create vpc
 variable "vpc-parameter"{
     description = "CIDR range for the VPC"
     #default = "10.1.0.0/16"
@@ -113,24 +124,13 @@ resource "aws_eip" "one" {
   depends_on                = [aws_internet_gateway.gw]
 }
 
-# 9. Create Linux server and install/enable httpd
-resource "aws_instance" "web-server" {
-  ami           = "ami-001c5f3c0a8b3f245"
-  instance_type = "t3.micro"
-  key_name = "StockolmKP"
-  network_interface {
-    device_index         = 0
-    network_interface_id = aws_network_interface.testNic.id
-  }
-  user_data = <<-EOF
-                #!/bin/bash
-                yum update -y
-                yum install -y httpd
-                systemctl start httpd
-                systemctl enable httpd
-                echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
-                EOF
+# 9. Create Linux server 
+resource "aws_instance" "web" {
+  ami           = "ami-03a6eaae9938c858c" #Amazon Linux AMI
+  instance_type = "t2.micro"
+  key_name      = aws_key_pair.TF_key.key_name
   tags = {
-    Name = "WebServerDemoTerraform"
+    Name = "HelloWorld"
   }
 }
+
