@@ -147,8 +147,7 @@ resource "aws_instance" "web" {
   key_name      = aws_key_pair.TF_key.key_name
    // Attach the security group to the EC2 instance
   vpc_security_group_ids = [aws_security_group.terraform-sg.id]
-
-  // ... other instance configuration ...
+  subnet_id = aws_subnet.my-subnet-1.id
   tags = {
   tags = {
     Name = "HelloWorld"
