@@ -145,10 +145,8 @@ resource "aws_instance" "web" {
   ami           = "ami-03a6eaae9938c858c" #Amazon Linux AMI
   instance_type = "t2.micro"
   key_name      = aws_key_pair.TF_key.key_name
-   // Attach the security group to the EC2 instance
   vpc_security_group_ids = [aws_security_group.terraform-sg.id]
   subnet_id = aws_subnet.my-subnet-1.id
-  tags = {
   tags = {
     Name = "HelloWorld"
   }
