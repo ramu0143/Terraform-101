@@ -152,6 +152,7 @@ resource "aws_iam_instance_profile" "example_profile" {
 
 resource "aws_instance" "web" {
   ami           = "ami-05c13eab67c5d8861" #Amazon Linux AMI
+  count         = 2
   instance_type = "t2.micro"
   key_name      = aws_key_pair.TF_key.key_name
   vpc_security_group_ids = [aws_security_group.terraform-sg.id]
