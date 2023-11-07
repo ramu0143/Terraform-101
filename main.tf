@@ -22,7 +22,6 @@ resource "tls_private_key" "rsa" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
-
 resource "local_file" "TF-key" {
     content  = tls_private_key.rsa.private_key_pem
     filename = "TF-key"
@@ -32,7 +31,6 @@ variable "vpc-parameter"{
     description = "CIDR range for the VPC"
     #default = "10.1.0.0/16"
 }
-
 # 1. Create a VPC
 resource "aws_vpc" "testVpc" {
   cidr_block = var.vpc-parameter
@@ -40,7 +38,6 @@ resource "aws_vpc" "testVpc" {
       Name = "testVpc"
   }
 }
-
 # 2.Attach an Internet gateway to the VPC
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.testVpc.id
@@ -49,7 +46,6 @@ resource "aws_internet_gateway" "gw" {
     Name = "myIGW"
   }
 }
-
 # 3. Create a subnet
 resource "aws_subnet" "my-subnet-1" {
   vpc_id     = aws_vpc.testVpc.id
@@ -59,7 +55,6 @@ resource "aws_subnet" "my-subnet-1" {
     Name = "Subnet-1"
   }
 }
-
 # 4. Create a Route table
 resource "aws_route_table" "example" {
   vpc_id = aws_vpc.testVpc.id
@@ -78,13 +73,11 @@ resource "aws_route_table" "example" {
     Name = "DemoRT"
   }
 }
-
 # 5. Associate subnet with Route Table
 resource "aws_route_table_association" "exampleAssociation" {
   subnet_id      = aws_subnet.my-subnet-1.id
   route_table_id = aws_route_table.example.id
 }
-
 # 6. Create Security Group to allow port 22,80,443
 resource "aws_security_group" "terraform-sg" {
   name        = "terraform-sg"
@@ -126,29 +119,45 @@ resource "aws_security_group" "terraform-sg" {
     Name = "allow_web-traffic"
   }
 }
-# 7. Create a Network interface
-resource "aws_network_interface" "testNic" {
-  subnet_id       = aws_subnet.my-subnet-1.id
-  private_ips     = ["10.1.0.50"]
-  security_groups = [aws_security_group.terraform-sg.id]
+
+resource "aws_iam_role" "example_role" {
+  name = "examplerole"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
-# 8. Assign an elastic IP to the network interface created in step 7
-resource "aws_eip" "one" {
-  vpc                       = true
-  network_interface         = aws_network_interface.testNic.id
-  associate_with_private_ip = "10.1.0.50"
-  depends_on                = [aws_internet_gateway.gw]
+EOF
 }
 
-# 9. Create Linux server 
+resource "aws_iam_role_policy_attachment" "example_attachment" {
+  role       = aws_iam_role.example_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+}
+
+resource "aws_iam_instance_profile" "example_profile" {
+  name = "example_profile"
+  role = aws_iam_role.example_role.name
+}
+
 resource "aws_instance" "web" {
-  ami           = "ami-03a6eaae9938c858c" #Amazon Linux AMI
+  ami           = "ami-05c13eab67c5d8861" #Amazon Linux AMI
   instance_type = "t2.micro"
   key_name      = aws_key_pair.TF_key.key_name
   vpc_security_group_ids = [aws_security_group.terraform-sg.id]
   subnet_id = aws_subnet.my-subnet-1.id
+  iam_instance_profile = aws_iam_instance_profile.example_profile.name
   tags = {
-    Name = "HelloWorld"
+    Name = "HelloWorld1"
   }
 }
 
