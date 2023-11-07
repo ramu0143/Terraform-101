@@ -41,6 +41,7 @@ resource "aws_vpc" "testVpc" {
 # 2.Attach an Internet gateway to the VPC
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.testVpc.id
+availability_zone = us-east-1c
 
   tags = {
     Name = "myIGW"
@@ -155,6 +156,7 @@ resource "aws_instance" "web" {
   key_name      = aws_key_pair.TF_key.key_name
   vpc_security_group_ids = [aws_security_group.terraform-sg.id]
   subnet_id = aws_subnet.my-subnet-1.id
+  associate_public_ip_address = true
   iam_instance_profile = aws_iam_instance_profile.example_profile.name
   tags = {
     Name = "HelloWorld1"
